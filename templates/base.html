@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        .center {
+          margin: auto;
+          width: 60%;
+          padding: 10px;
+          text-align: center;
+          background-color:#ced9e3;
+        }
+
+        .container{
+            margin: 50px auto;
+            width: 60%;
+            padding: 10px;
+            text-align: center;
+            width: 500px;
+            height: 500px;
+            background-color: #ced9e3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .page-header {
+            color: #ffff;
+            text-align: center;
+            background-color: #159957;
+            background-image: linear-gradient(120deg, #155799, #159957);
+        }
+
+        table {
+          border-collapse: separate;
+          border-spacing: 0;
+        }
+        th,
+        td {
+          padding: 10px 15px;
+        }
+        thead {
+          background: #395870;
+          color: #fff;
+        }
+        th {
+          font-weight: bold;
+        }
+        tbody tr:nth-child(even) {
+          background: #f0f0f2;
+        }
+        td {
+          border-bottom: 1px solid #cecfd5;
+          border-right: 1px solid #cecfd5;
+        }
+        td:first-child {
+          border-left: 1px solid #cecfd5;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 5px;
+            background-color: #f3f3f3
+        }
+
+        @media screen and (min-width: 64em)
+        .project-name {
+            font-size: 3.25rem;
+        }
+        .project-name {
+            margin-top: 0;
+            margin-bottom: 0.1rem;
+        }
+
+        @media screen and (min-width: 64em)
+        .project-tagline {
+            font-size: 1.25rem;
+        }
+        .project-tagline {
+            margin-bottom: 2rem;
+            font-weight: normal;
+            opacity: 0.7;
+        }
+    </style>
+
+        <meta charset="UTF-8">
+ 
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#157878">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
+</head>
+<header>
+    <div class="page-header position-relative px-4 px-lg-5">
+      <h1 class="project-name">Bootstrapping Task Learning with Human Advice</h1>
+      <h2 class="project-tagline">TEST</h2>
+	  <a href="./Webinterface.html" class="btn">Try it out!</a>
+	  <a href="./Architecture.html" class="btn">Architecture</a>
+	  <a href="./Knowledge.html" class="btn">Web Knowledge</a>
+	  <a href="./OntologyQuery.html" class="btn">Querying the Ontology</a>
+	          <br>
+	  <a href="./Experiment.html" class="btn">Experiment</a>
+	  <a href="./Videos.html" class="btn">Cutting Videos</a>
+	  <a href="./WikiHowAnalysis.html" class="btn">WikiHow Analysis</a>
+	  <a href="" class="btn">View on GitHub</a>
+    </div>
+</header>
+<body>
+    {% block content %}
+    {% endblock %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>

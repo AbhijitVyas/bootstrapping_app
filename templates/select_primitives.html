@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+    {% extends "base.html" %}
+    {% block title %}Primitive selection page{% endblock %}
+
+    {% block content %}
+
+    <div class='container'>
+    <form action="" method="post">
+        <p>Select Primitives from the library of Actions</p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col" colspan="1">Primitive Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <strong class="book-title">PickUp</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">PutDown</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">Tilt</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">Align</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">Cut</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">Slice</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">Sprinkle</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong class="book-title">Throw</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <input type="submit" value="Next"/>
+    </form>
+    </div>
+    {% endblock %}
+</body>
+</html>
