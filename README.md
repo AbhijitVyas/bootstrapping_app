@@ -13,4 +13,8 @@ This application provides a GUI based user interface to help human teachers iter
    dockeimage build -t bootstrapping_app .
    docker run -p 127.0.0.1:5000:5000 bootstrapping_app 
    ```
-   this should bootup the flask based docker application which can be tested at http://localhost:5000/bootstrapping.
+   this should bootup the flask based docker application which can be tested at
+
+   http://localhost:5000/
+   http://localhost:5000/register
+   http://localhost:5000/bootstrapping.
