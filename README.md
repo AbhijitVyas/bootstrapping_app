@@ -15,6 +15,6 @@ This application provides a GUI based user interface to help human teachers iter
    ```
    this should bootup the flask based docker application which can be tested at
 
-   http://localhost:5000/
-   http://localhost:5000/register
+   http://localhost:5000/ \\
+   http://localhost:5000/register \\
    http://localhost:5000/bootstrapping.
