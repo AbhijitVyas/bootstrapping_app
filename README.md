@@ -10,7 +10,7 @@ This application provides a GUI based user interface to help human teachers iter
 3. Open the project files in your preferable IDE (eg. PyCharm)
 5. From the ROOT directory, run the command
    ```bash
-   dockeimage build -t bootstrapping_app .
+   docker build -t bootstrapping_app .
    docker run -p 127.0.0.1:5000:5000 bootstrapping_app 
    ```
    this should bootup the flask based docker application which can be tested at
