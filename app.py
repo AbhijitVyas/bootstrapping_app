@@ -8,10 +8,9 @@ import bcrypt
 records = dockerMongoDB()
 app = Flask(__name__)
 
-
-@app.route('/index')
-def home():
-    return render_template('index.html')
+@app.route("/")
+def welcome():
+    return render_template("welcome.html")
 
 @app.route("/bootstrapping", methods=["POST", "GET"])
 def bootstrapping():
@@ -55,7 +54,7 @@ def load_task_definition_to_nlp(task_def: str):
 
 ############### mongodb ##################
 # assign URLs to have a particular route
-@app.route("/", methods=['post', 'get'])
+@app.route("/register", methods=['post', 'get'])
 def index():
     message = ''
     # if method post in index
@@ -71,13 +70,13 @@ def index():
         email_found = records.find_one({"email": email})
         if user_found:
             message = 'There already is a user by that name'
-            return render_template('index.html', message=message)
+            return render_template('register.html', message=message)
         if email_found:
             message = 'This email already exists in database'
-            return render_template('index.html', message=message)
+            return render_template('register.html', message=message)
         if password1 != password2:
             message = 'Passwords should match!'
-            return render_template('index.html', message=message)
+            return render_template('register.html', message=message)
         else:
             # hash the password and encode it
             hashed = bcrypt.hashpw(password2.encode('utf-8'), bcrypt.gensalt())
@@ -91,7 +90,7 @@ def index():
             new_email = user_data['email']
             # if registered redirect to logged in as the registered user
             return render_template('logged_in.html', email=new_email)
-    return render_template('index.html')
+    return render_template('register.html')
 
 
 @app.route("/login", methods=["POST", "GET"])
@@ -139,7 +138,7 @@ def logout():
         session.pop("email", None)
         return render_template("signout.html")
     else:
-        return render_template('index.html')
+        return render_template('register.html')
 
 
 
