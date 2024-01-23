@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  rasaserver:
+    container_name: rasaserv
+    image: srikanth635/rasaactions
+    ports:
+      - "5005:5005"
+
+  bootstrap:
+    container_name: bootc
+    image: srikanth635/bootstrap
+    ports:
+      - "5000:5000"
+  

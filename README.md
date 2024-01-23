@@ -18,3 +18,13 @@ This application provides a GUI based user interface to help human teachers iter
    http://localhost:5000/
    http://localhost:5000/register
    http://localhost:5000/bootstrapping.
+
+## Steps (to run bootstrapping + rasaactions)
+1. ```bash
+   git clone git@github.com:Srikanth635/bootstrapping.git
+2. Run
+   ```bash
+   docker-compose -f compose.yml up
+3. This should download images from hub (if not available locally) and then start two containers (1.bootstrapping,2.rasaactions)
+4. Once the RASA server is up and running, open 'http://localhost:5000/bootstrapping' on host machine to access bootstrapping app.
+5. Enter the instruction in the text box shown and press next.
