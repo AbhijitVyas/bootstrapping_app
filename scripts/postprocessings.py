@@ -85,11 +85,13 @@ def motion_finder(intent=None,source=None,destination=None,stuff=None,action_ver
             motion = 'squeeze'
         elif stemmer.stem(stuff) in powdered:
             motion = 'shake'
-            if stemmer.stem(destination) in fires: motion = 'throw'
-            if stemmer.stem(destination) in plants: motion = 'sprinkle'
+            if not destination is None:
+                if stemmer.stem(destination) in fires: motion = 'throw'
+                if stemmer.stem(destination) in plants: motion = 'sprinkle'
         else:
-            if stemmer.stem(destination) in fires: motion = 'throw'
-            if stemmer.stem(destination) in plants: motion = 'sprinkle'
+            if not destination is None:
+                if stemmer.stem(destination) in fires: motion = 'throw'
+                if stemmer.stem(destination) in plants: motion = 'sprinkle'
 
 
     elif intent == "shake":
@@ -107,6 +109,8 @@ def postprocess(rasa_out, compound_props):
 
     intent = ""
     ins1 = None
+    act = ""
+    goal = ""
 
     for k, v in rasa_out.items():
         if k == "intent":
@@ -115,28 +119,32 @@ def postprocess(rasa_out, compound_props):
             if intent == "pouring":
                 ins1 = cores.Pouring()
                 # Extracting RASA outputs source,destination,stuff
-                for dic in v:
-                    if dic['extractor'] == "DIETClassifier" and dic['entity'] == "location" and dic['role'] == "source":
-                        ins1.source = dic['value']
-                    elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "location" and \
-                            dic['role'] == "destination":
-                        ins1.destination = dic['value']
-                    elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "stuff":
-                        ins1.stuff = dic['value']
-                    elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount" and \
-                            dic['role'] == "quantity":
-                        ins1.amount = dic['value']
-                    elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount" and dic['role'] == "units":
-                        ins1.units = dic['value']
-                    elif dic['extractor'] == "RegexEntityExtractor" and dic['entity'] == "stuff":
-                        if ins1.stuff is not None:
+                try:
+                    for dic in v:
+                        if dic['extractor'] == "DIETClassifier" and dic['entity'] == "location" and dic['role'] == "source":
+                            ins1.source = dic['value']
+                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "location" and \
+                                dic['role'] == "destination":
+                            ins1.destination = dic['value']
+                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "stuff":
                             ins1.stuff = dic['value']
-                    elif dic['extractor'] == "SpacyEntityExtractor" and dic['entity'] == "CARDINAL":
-                        # if ins1.amount is not None:
-                        ins1.amount = dic['value']
-                    elif dic['extractor'] == "SpacyEntityExtractor" and dic['entity'] == "QUANTITY":
-                        # if ins1.amount is not None:
-                        ins1.amount = dic['value']
+                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount" and \
+                                dic['role'] == "quantity":
+                            ins1.amount = dic['value']
+                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount" and dic[
+                            'role'] == "units":
+                            ins1.units = dic['value']
+                        elif dic['extractor'] == "RegexEntityExtractor" and dic['entity'] == "stuff":
+                            if ins1.stuff is not None:
+                                ins1.stuff = dic['value']
+                        elif dic['extractor'] == "SpacyEntityExtractor" and dic['entity'] == "CARDINAL":
+                            # if ins1.amount is not None:
+                            ins1.amount = dic['value']
+                        elif dic['extractor'] == "SpacyEntityExtractor" and dic['entity'] == "QUANTITY":
+                            # if ins1.amount is not None:
+                            ins1.amount = dic['value']
+                except:
+                    print("Problem with Parsing RASA output")
 
                 for key, value in compound_props['props'].items():
                     if key == ins1.source:
@@ -155,10 +163,14 @@ def postprocess(rasa_out, compound_props):
                         ins1.stuff_prop.update({'metadata':key})
 
                 # act = action_verb_finder(intent,compound_props['verbs'])
-                act,goal = testing_finder(intent=intent,source=ins1.source,destination=ins1.destination,
-                                          stuff=ins1.stuff,dix=compound_props['verbs'])
-                ins1.action_verb = act
-                ins1.goal = goal
+                try:
+                    act, goal = testing_finder(intent=intent, source=ins1.source, destination=ins1.destination,
+                                               stuff=ins1.stuff, dix=compound_props['verbs'])
+                    ins1.action_verb = act
+                    ins1.goal = goal
+                except:
+                    print("Problem with action testing finder")
+
                 # if len(act) > 0:
                 #     if ins1.stuff in viscous and act not in slow_pouring:
                 #         ins1.action_verb = 'drizzle'
@@ -173,10 +185,15 @@ def postprocess(rasa_out, compound_props):
                 #     common_verb = [word for word in compound_props['compounded_text'].split(" ") if word in pouring_verbs]
                 #     ins1.action_verb = common_verb[0]
 
-                motion,_ = motion_finder(intent=intent,source=ins1.source,destination=ins1.destination,
-                                            stuff=ins1.stuff,action_verb=ins1.action_verb,dix=compound_props['verbs'])
+                try:
+                    motion, _ = motion_finder(intent=intent, source=ins1.source, destination=ins1.destination,
+                                              stuff=ins1.stuff, action_verb=ins1.action_verb,
+                                              dix=compound_props['verbs'])
+                    ins1.motion = motion
+                except:
+                    print("Problem with motion finder")
 
-                ins1.motion = motion
+
 
             elif intent == "shake":
                 ins1 = cores.Shake()
@@ -333,11 +350,12 @@ def testing_finder(intent=None,source=None,destination=None,stuff=None,dix=None)
                 else:
                     act = "pour"
 
-            if 'batter' in stuff and 'pan' in destination:
-                # goal.append("")
-                goal = goal + " and " + "form a circular shape"
-            if stemmer.stem(destination) in fires: goal = 'extinguish'
-            if stemmer.stem(destination) in plants: goal = 'watering'
+            if not destination is None:
+                if 'batter' in stuff and 'pan' in destination:
+                    # goal.append("")
+                    goal = goal + " and " + "form a circular shape"
+                if stemmer.stem(destination) in fires: goal = 'extinguish'
+                if stemmer.stem(destination) in plants: goal = 'watering'
 
         elif stuff in nviscous:
             if 'ADV' in dix:
@@ -384,8 +402,9 @@ def testing_finder(intent=None,source=None,destination=None,stuff=None,dix=None)
                 else:
                     act = "pour"
 
-            if stemmer.stem(destination) in fires: goal = 'extinguish'
-            if stemmer.stem(destination) in plants: goal = 'watering'
+            if not destination is None:
+                if stemmer.stem(destination) in fires: goal = 'extinguish'
+                if stemmer.stem(destination) in plants: goal = 'watering'
 
             # if 'fire' in destination or 'flame' in destination:
             #     goal.append("extinguish")
@@ -431,11 +450,14 @@ def testing_finder(intent=None,source=None,destination=None,stuff=None,dix=None)
                             act = "sprinkle"
                 else:
                     act = "sprinkle"
-            if stemmer.stem(destination) in fires: goal = 'extinguish'
-            if stemmer.stem(destination) in plants: goal = 'watering'
+
+            if not destination is None:
+                if stemmer.stem(destination) in fires: goal = 'extinguish'
+                if stemmer.stem(destination) in plants: goal = 'watering'
 
     elif intent == "shake":
         act = "sprinkle"
+        goal = "no spillage"
         if 'VERB' in dix:
             vbs = list(dix['VERB'].keys())
             for vs in vbs:
