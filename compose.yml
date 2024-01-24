@@ -9,7 +9,7 @@ services:
 
   bootstrap:
     container_name: bootc
-    image: srikanth635/bootstrap
+    image: srikanth635/bootstrapping
     ports:
       - "5000:5000"
   
