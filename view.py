@@ -1,26 +1,28 @@
 import os
-from flask import Flask, render_template, jsonify, request, redirect, url_for, url_for, redirect, session
+from flask import Flask, render_template, jsonify, request, redirect, url_for,session
 from flask_restful import Resource, Api, reqparse
 import json
 import subprocess
 import base
-from mongodb_interface import dockerMongoDB
+import secrets
+import pymongo
 import bcrypt
+from mongodb_interface import dockerMongoDB
+
+app = Flask(__name__)
+secret_key = secrets.token_hex(16)
+app.secret_key = secret_key
 
 records = dockerMongoDB()
-app = Flask(__name__)
 
-
-@app.route('/index')
+@app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('welcome.html')
 
 @app.route("/bootstrapping", methods=["POST", "GET"])
 def bootstrapping():
     if request.method == "POST":
         task_def = request.form["task_def"]
-        ### Trigger base.py by passing NL instruction(task_def) as param
-
         intent, rasa_dict = base.main(task_def)
         rasa_dict_str = json.dumps(rasa_dict)
         print("RASA OUTPUT: ",rasa_dict)
@@ -31,14 +33,44 @@ def bootstrapping():
 @app.route("/contents", methods=["POST", "GET"])
 def contents():
     if request.method == "GET":
-        task_def = request.args['task_def']
-        rasa_str = request.args.get('inputs', '{}')
-        rasa_intent = request.args['intent']
-        
-        response = load_task_definition_to_nlp(rasa_intent,rasa_str)
-        return render_template("contents.html", response=response, task_def=task_def)
+        modified = session.get('modified_rasa_data',None)
+        if modified is None:
+            task_def = request.args['task_def']
+            rasa_str = request.args.get('inputs', '{}')
+            rasa_intent = request.args['intent']
+
+            response = load_task_definition_to_nlp(rasa_intent, rasa_str)
+            session['rasaresponse'] = response
+            session['task_def'] = task_def
+            return render_template("contents.html", response=response, task_def=task_def)
+        else:
+            session['rasaresponse'] = modified
+            task_def = session.get('task_def')
+            return render_template("contents.html",response=modified, task_def=task_def)
     else:
-        return render_template("select_primitives.html")
+        if request.form['submit_button'] == 'Edit':
+            return redirect(url_for('edit_contents'))
+        elif request.form['submit_button'] == 'Next':
+            mongosave = session['rasaresponse']
+            inputNL = session['task_def']
+            print("IN MONGO dict: ", mongosave)
+            connectToMongo(mongosave,inputNL)
+            return render_template("select_primitives.html")
+
+@app.route("/edit_contents", methods=["GET","POST"])
+def edit_contents():
+    if request.method == "GET":
+        response = session.get('rasaresponse', None)
+        if response is not None:
+            task_def = session.get('task_def')
+            return render_template("edit_contents.html", response=response, task_def=task_def)
+        else:
+            return render_template("edit_contents.html")
+    else:
+        modified_rasa_data = {key: request.form[key] for key in request.form}
+        print("MODIFIED FORM : ",modified_rasa_data)
+        session['modified_rasa_data'] = modified_rasa_data
+        return redirect(url_for('contents'))
 
 @app.route('/select_primitives', methods=['GET', 'POST'])
 def select_primitives():
@@ -82,9 +114,17 @@ def load_task_definition_to_nlp(rasa_intent: str,rasa_str: str):
     # return data
     return json_dict
 
-if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+
+def connectToMongo(mongosave : dict, inputNL: str):
+    # client = pymongo.MongoClient("mongodb://mongoc:27017/")
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = client['bootstrap']
+    collection = db['InputInstructions']
+    data = {'NL_instruction': inputNL,
+            'Info_Extracted': mongosave}
+    result = collection.insert_one(data)
+    print("Inserted document ID:", result.inserted_id)
+    client.close()
 
 ############### mongodb ##################
 # assign URLs to have a particular route
@@ -173,4 +213,8 @@ def logout():
         return render_template("signout.html")
     else:
         return render_template('register.html')
+
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
 

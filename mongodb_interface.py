@@ -21,11 +21,15 @@ def MongoDB():
 
 ##Connect with Docker Image###
 def dockerMongoDB():
-    client = MongoClient(host='test_mongodb',
-                         port=27017,
-                         username='root',
-                         password='pass',
-                         authSource="admin")
+    # client = MongoClient(host='localhost',
+    #                      port=27017,
+    #                      username='root',
+    #                      password='pass',
+    #                      authSource="admin")
+    client = MongoClient(host='localhost',
+                         port=27017)
+    # client = MongoClient(host='mongoc')
+
     db = client.users
     pw = "test123"
     hashed = bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt())

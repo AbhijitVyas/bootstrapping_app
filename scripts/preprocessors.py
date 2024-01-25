@@ -1,8 +1,8 @@
 import itertools
 import string
 import nltk
-nltk.download('punkt')
-nltk.download('wordnet')
+# nltk.download('punkt')
+# nltk.download('wordnet')
 from nltk import word_tokenize
 from nltk.corpus import wordnet as wn
 import spacy

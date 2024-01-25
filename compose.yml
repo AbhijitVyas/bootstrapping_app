@@ -12,4 +12,14 @@ services:
     image: srikanth635/bootstrapping
     ports:
       - "5000:5000"
+
+  mongodb:
+    container_name: mongoc
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
   
+volumes:
+  mongodb_data:
