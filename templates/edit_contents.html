@@ -9,7 +9,7 @@
     {% block content %}
 
     <div class='container'>
-    <form action="#" method="post">
+    <form action="" method="post">
         <p>Given task definition: {{ task_def }}</p>
         <table>
           <thead>
@@ -23,61 +23,61 @@
               <td>
                 <strong class="book-title">Action Verb</strong>
               </td>
-              <td class="item-qty"><input type="text" name="action_verb" value="{{ response['action_verb'] }}"></td>
+              <td class="item-qty"><input type="text" name="action_verb" size="10" value="{{ response['action_verb'] }}"></td>
               <!-- <td class="item-qty">{{ response['action_verb'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Substance</strong>
               </td>
-              <td class="item-qty"><input type="text" name="substance" value="{{ response['substance'] }}"></td>
+              <td class="item-qty"><input type="text" name="substance" size="10" value="{{ response['substance'] }}"></td>
               <!-- <td class="item-qty">{{ response['substance'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Source Object</strong>
               </td>
-              <td class="item-qty"><input type="text" name="source_object" value="{{ response['source_object'] }}"></td>
+              <td class="item-qty"><input type="text" name="source_object" size="10" value="{{ response['source_object'] }}"></td>
               <!-- <td class="item-qty">{{ response['source_object'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Target Object</strong>
               </td>
-              <td class="item-qty"><input type="text" name="target_object" value="{{ response['target_object'] }}"></td>
+              <td class="item-qty"><input type="text" name="target_object" size="10" value="{{ response['target_object'] }}"></td>
               <!-- <td class="item-qty">{{ response['target_object'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Unit</strong>
               </td>
-              <td class="item-qty"><input type="text" name="unit" value="{{ response['unit'] }}"></td>
+              <td class="item-qty"><input type="text" name="unit" size="10" value="{{ response['unit'] }}"></td>
               <!-- <td class="item-qty">{{ response['unit'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Goal</strong>
               </td>
-              <td class="item-qty"><input type="text" name="goal" value="{{ response['goal'] }}"></td>
+              <td class="item-qty"><input type="text" name="goal" size="10" value="{{ response['goal'] }}"></td>
               <!-- <td class="item-qty">{{ response['goal'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Motion Verb</strong>
               </td>
-              <td class="item-qty"><input type="text" name="motion_verb" value="{{ response['motion_verb'] }}"></td>
+              <td class="item-qty"><input type="text" name="motion_verb" size="10" value="{{ response['motion_verb'] }}"></td>
               <!-- <td class="item-qty">{{ response['motion_verb'] }}</td> -->
             </tr>
             <tr>
               <td>
                 <strong class="book-title">Amount</strong>
               </td>
-              <td class="item-qty"><input type="text" name="amount" value="{{ response['amount'] }}"></td>
+              <td class="item-qty"><input type="text" name="amount" size="10" value="{{ response['amount'] }}"></td>
               <!-- <td class="item-qty">{{ response['amount'] }}</td> -->
             </tr>
           </tbody>
         </table>
-        <input type="submit" name="save_button" value="Save"/> </p>
+        <input type="submit" name="save_button" size="10" value="Save"/> </p>
     </form>
     </div>
     {% endblock %}

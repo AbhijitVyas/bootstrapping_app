@@ -1,6 +1,7 @@
-import os
+import os,sys
 from flask import Flask, render_template, jsonify, request, redirect, url_for,session
 from flask_restful import Resource, Api, reqparse
+import signal
 import json
 import subprocess
 import base
@@ -13,7 +14,26 @@ app = Flask(__name__)
 secret_key = secrets.token_hex(16)
 app.secret_key = secret_key
 
-records = dockerMongoDB()
+mongo_client_instance,records = dockerMongoDB()
+
+# disconnects,cleanup function are defined and used to disconnect any existing mongodb connections to ensure proper
+# flask app termination
+def disconnects():
+    try:
+        mongo_client_instance.close()
+        print('Existing MongoDB connection closed')
+    except:
+        print('Could not close or No available mongodb connection')
+
+def cleanup(signum, frame):
+    print(f"Received signal {signum}. Cleaning up resources before termination...")
+    disconnects()
+    sys.exit(0)
+
+
+# Register the cleanup function to be called on termination
+signal.signal(signal.SIGTERM, cleanup)
+signal.signal(signal.SIGINT, cleanup)
 
 @app.route('/')
 def home():
@@ -28,6 +48,10 @@ def bootstrapping():
         print("RASA OUTPUT: ",rasa_dict)
         return redirect(url_for('contents', task_def=task_def, intent = intent, inputs=rasa_dict_str))
     else:
+        try:
+            session.clear()
+        except:
+            print("Cleared or No session to clear")
         return render_template("bootstrapping.html")
 
 @app.route("/contents", methods=["POST", "GET"])
@@ -116,15 +140,18 @@ def load_task_definition_to_nlp(rasa_intent: str,rasa_str: str):
 
 
 def connectToMongo(mongosave : dict, inputNL: str):
-    # client = pymongo.MongoClient("mongodb://mongoc:27017/")
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-    db = client['bootstrap']
-    collection = db['InputInstructions']
-    data = {'NL_instruction': inputNL,
-            'Info_Extracted': mongosave}
-    result = collection.insert_one(data)
-    print("Inserted document ID:", result.inserted_id)
-    client.close()
+    try:
+        client = pymongo.MongoClient("mongodb://mongoc:27017/")
+        # client = pymongo.MongoClient("mongodb://localhost:27017/")
+        db = client['bootstrap']
+        collection = db['InputInstructions']
+        data = {'NL_instruction': inputNL,
+                'Info_Extracted': mongosave}
+        result = collection.insert_one(data)
+        print("Inserted document ID:", result.inserted_id)
+        client.close()
+    except:
+        print('MongoDB not connected')
 
 ############### mongodb ##################
 # assign URLs to have a particular route
@@ -154,7 +181,7 @@ def index():
         else:
             # hash the password and encode it
             hashed = bcrypt.hashpw(password2.encode('utf-8'), bcrypt.gensalt())
-            # assing them in a dictionary in key value pairs
+            # adding them in a dictionary in key value pairs
             user_input = {'name': user, 'email': email, 'password': hashed}
             # insert it in the record collection
             records.insert_one(user_input)
