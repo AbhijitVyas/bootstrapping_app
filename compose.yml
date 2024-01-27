@@ -3,7 +3,7 @@ version: '2'
 services:
   rasaserver:
     container_name: rasaserv
-    image: srikanth635/rasaactions
+    image: srikanth635/rasa_extracts
     ports:
       - "5005:5005"
 

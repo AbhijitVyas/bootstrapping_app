@@ -141,8 +141,8 @@ def load_task_definition_to_nlp(rasa_intent: str,rasa_str: str):
 
 def connectToMongo(mongosave : dict, inputNL: str):
     try:
-        client = pymongo.MongoClient("mongodb://mongoc:27017/")
-        # client = pymongo.MongoClient("mongodb://localhost:27017/")
+        # client = pymongo.MongoClient("mongodb://mongoc:27017/")
+        client = pymongo.MongoClient("mongodb://localhost:27017/")
         db = client['bootstrap']
         collection = db['InputInstructions']
         data = {'NL_instruction': inputNL,
