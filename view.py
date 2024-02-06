@@ -16,6 +16,15 @@ app.secret_key = secret_key
 
 mongo_client_instance,records = dockerMongoDB()
 
+class RASA:
+    def __init__(self, nl_instruction: str, intent: str, resources: dict):
+        self.nl_instruction = nl_instruction
+        self.intent = intent
+        self.resources = resources
+
+
+RASA_outputs = []
+
 # disconnects,cleanup function are defined and used to disconnect any existing mongodb connections to ensure proper
 # flask app termination
 def disconnects():
@@ -35,121 +44,135 @@ def cleanup(signum, frame):
 signal.signal(signal.SIGTERM, cleanup)
 signal.signal(signal.SIGINT, cleanup)
 
+
 @app.route('/')
 def home():
     return render_template('welcome.html')
+
 
 @app.route("/bootstrapping", methods=["POST", "GET"])
 def bootstrapping():
     if request.method == "POST":
         task_def = request.form["task_def"]
-        intent, rasa_dict = base.main(task_def)
-        rasa_dict_str = json.dumps(rasa_dict)
-        print("RASA OUTPUT: ",rasa_dict)
-        return redirect(url_for('contents', task_def=task_def, intent = intent, inputs=rasa_dict_str))
+        intent, rasa_dict = base.main(task_def)         # -------> Calling RASA server with input instruction(task_def)
+        RASA_outputs.append(RASA(task_def, intent, rasa_dict))  # ---> Saving RASA output as RASA instance in list
+        return redirect(url_for('contents'))
     else:
         try:
-            session.clear()
+            RASA_outputs.clear()                                                      # -------> Clearing RASA_outputs[]
+            session.clear()                                                             # -------> Clearing session data
         except:
             print("Cleared or No session to clear")
         return render_template("bootstrapping.html")
 
+
 @app.route("/contents", methods=["POST", "GET"])
 def contents():
     if request.method == "GET":
-        modified = session.get('modified_rasa_data',None)
+        modified = session.get('modified_rasa_response',None)
         if modified is None:
-            task_def = request.args['task_def']
-            rasa_str = request.args.get('inputs', '{}')
-            rasa_intent = request.args['intent']
-
-            response = load_task_definition_to_nlp(rasa_intent, rasa_str)
-            session['rasaresponse'] = response
-            session['task_def'] = task_def
-            return render_template("contents.html", response=response, task_def=task_def)
+            try:
+                data = RASA_outputs[0]
+                response = load_task_definition_to_nlp()
+                session['rasa_response'] = response
+                return render_template("contents.html", response=response, task_def=data.nl_instruction)
+            except:
+                print("problem rendering contents template page")
         else:
-            session['rasaresponse'] = modified
-            task_def = session.get('task_def')
-            return render_template("contents.html",response=modified, task_def=task_def)
+            session['rasa_response'] = modified
+            return render_template("contents.html", response=modified, task_def=RASA_outputs[0].nl_instruction)
     else:
         if request.form['submit_button'] == 'Edit':
             return redirect(url_for('edit_contents'))
         elif request.form['submit_button'] == 'Next':
-            mongosave = session['rasaresponse']
-            inputNL = session['task_def']
-            print("IN MONGO dict: ", mongosave)
-            connectToMongo(mongosave,inputNL)
-            return render_template("select_primitives.html")
+            mongo_save = session['rasa_response']
+            connectToMongo(mongo_save)                                    # ------> Calling Mongo function to store data
+            try:
+                data = RASA_outputs[0]
+                primitives = provide_primitive_list(rasa_content=data.resources, intent=data.intent)
+                return render_template('select_primitives.html', len=len(primitives), primitives=primitives)
+            except:
+                print("problem rendering select_primitives template page")
+
 
 @app.route("/edit_contents", methods=["GET","POST"])
 def edit_contents():
     if request.method == "GET":
-        response = session.get('rasaresponse', None)
-        if response is not None:
-            task_def = session.get('task_def')
-            return render_template("edit_contents.html", response=response, task_def=task_def)
+        response = session.get('rasa_response', None)
+        if RASA_outputs and response is not None:
+            data = RASA_outputs[0]
+            return render_template("edit_contents.html", response=response, task_def=data.nl_instruction)
         else:
             return render_template("edit_contents.html")
     else:
-        modified_rasa_data = {key: request.form[key] for key in request.form}
-        print("MODIFIED FORM : ",modified_rasa_data)
-        session['modified_rasa_data'] = modified_rasa_data
+        modified_rasa_response = {key: request.form[key] for key in request.form}
+        print("MODIFIED FORM : ", modified_rasa_response)
+        session['modified_rasa_response'] = modified_rasa_response
         return redirect(url_for('contents'))
+
 
 @app.route('/select_primitives', methods=['GET', 'POST'])
 def select_primitives():
-    return render_template('select_primitives.html')
+    rasa_content = {"action_verb": "pour", "source": "cup", "destination": "bowl"}
+    primitives = provide_primitive_list(rasa_content, intent="Pouring")
+    return render_template('select_primitives.html', primitives=primitives)
 
-# This method will take string and output the action core json instance and store the string as well as action core
-# in mongodb
-def load_task_definition_to_nlp(rasa_intent: str,rasa_str: str):
-    json_str = {}
-    json_dict = {}
-    try:
-        # Deserialize the JSON string into a dictionary
-        rasa_dict = json.loads(rasa_str)
-    except json.JSONDecodeError as e:
-        return f"Error decoding JSON: {str(e)}"
 
-    print("INSIDE", type(rasa_dict), rasa_dict)
-    if not 'error' in rasa_dict:
-        if rasa_intent=="pouring":
-            json_dict = {"action_verb": "Pouring", "substance": rasa_dict["substance"], "source_object": rasa_dict["source"],
-                     "target_object": rasa_dict["destination"], "unit": rasa_dict["units"], "goal": rasa_dict["goal"],
-                     "motion_verb": rasa_dict["motion"], "amount": rasa_dict["amount"]}
-        elif rasa_intent=="shake":
-            json_dict = {"action_verb": "Shaking", "substance": "", "source_object": rasa_dict["obj_to_be_shaken"],
-                     "target_object": rasa_dict["destination"], "unit": rasa_dict["units"], "goal": rasa_dict["goal"],
-                     "motion_verb": rasa_dict["motion"], "amount": rasa_dict["amount"]}
+def provide_primitive_list(rasa_content: dict, intent: str):
+    if 'pour' in intent.lower():
+        return [{"primitive_action": "PickUp", "constraint": rasa_content["source"]},
+                {"primitive_action": "Align", "constraint": rasa_content["destination"]},
+                {"primitive_action": "Tilt", "constraint": rasa_content["source"]},
+                {"primitive_action": "PutDown", "constraint": rasa_content["source"]}]
+    elif 'cut' in intent.lower():
+        return [{"primitive_action": "PickUp", "constraint": rasa_content["source"]},
+                {"primitive_action": "Align", "constraint": rasa_content["destination"]},
+                {"primitive_action": "Cut", "constraint": rasa_content["destination"]},
+                {"primitive_action": "PutDown", "constraint": rasa_content["source"]}]
+    elif 'shake' in intent.lower():
+        return [{"primitive_action": "PickUp", "constraint": rasa_content["source"]},
+                {"primitive_action": "Align", "constraint": rasa_content["destination"]},
+                {"primitive_action": "Shake", "constraint": rasa_content["source"]},
+                {"primitive_action": "PutDown", "constraint": rasa_content["source"]}]
     else:
-        json_dict = rasa_dict
-    print("ANSWER: ", json_dict)
+        return []
 
-    # if task_def.__contains__("pour"):
-    #     json_str = ('{"action_verb": "pouring", "substance": "water", '
-    #                 '"source_object": "cup", "target_object": "bowl",'
-    #                 '"unit": "ml", "goal": "pour without spilling", "motion_verb": "tilting", "amount": "50"}')
-    #
-    # elif task_def.__contains__("cut"):
-    #     json_str = ('{"action_verb": "cutting", "substance": "", '
-    #                 '"source_object": "knife", "target_object": "bread",'
-    #                 '"unit": "slice", "goal": "cut without damage", "motion_verb": "slicing", "amount": "5"}')
-    # data = json.loads(json_str)
-    # return data
+def load_task_definition_to_nlp():
+    json_dict = {}
+    if RASA_outputs:
+        data = RASA_outputs[0]                                     # -------> Accessing the saved instance of RASA class
+        intent = data.intent                                  # -------> intent :  intent detected by the RASA framework
+        resources = data.resources        # -------> resources : dict of rasa extraction info (source,destination etc.,)
+        print("INSIDE", type(resources), resources)
+        if not 'error' in resources:
+            if intent == "pouring":
+                json_dict = {"action_verb": "Pouring", "substance": resources["substance"], "source_object": resources["source"],
+                         "target_object": resources["destination"], "unit": resources["units"], "goal": resources["goal"],
+                         "motion_verb": resources["motion"], "amount": resources["amount"]}
+            elif intent == "shake":
+                json_dict = {"action_verb": "Shaking", "substance": "", "source_object": resources["obj_to_be_shaken"],
+                         "target_object": resources["destination"], "unit": resources["units"], "goal": resources["goal"],
+                         "motion_verb": resources["motion"], "amount": resources["amount"]}
+        else:
+            json_dict = resources
+        print("ANSWER: ", json_dict)
+
     return json_dict
 
-
-def connectToMongo(mongosave : dict, inputNL: str):
+# This method will read RASA intent and resources and save it in MongoDB
+def connectToMongo(mongo_save: dict):
     try:
-        # client = pymongo.MongoClient("mongodb://mongoc:27017/")
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
+        client = pymongo.MongoClient("mongodb://mongoc:27017/")
+        # client = pymongo.MongoClient("mongodb://localhost:27017/")
         db = client['bootstrap']
         collection = db['InputInstructions']
-        data = {'NL_instruction': inputNL,
-                'Info_Extracted': mongosave}
-        result = collection.insert_one(data)
-        print("Inserted document ID:", result.inserted_id)
-        client.close()
+        if RASA_outputs:
+            data = RASA_outputs[0]
+            mongodata = {'NL_instruction': data.nl_instruction,
+                    'Info_Extracted': mongo_save}
+            result = collection.insert_one(mongodata)
+            print("Inserted document ID:", result.inserted_id)
+            client.close()
     except:
         print('MongoDB not connected')
 
