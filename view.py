@@ -1,5 +1,5 @@
-import os,sys
-from flask import Flask, render_template, jsonify, request, redirect, url_for,session
+import os, sys
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from flask_restful import Resource, Api, reqparse
 import signal
 import json
@@ -14,7 +14,7 @@ app = Flask(__name__)
 secret_key = secrets.token_hex(16)
 app.secret_key = secret_key
 
-mongo_client_instance,records = dockerMongoDB()
+mongo_client_instance, records = dockerMongoDB()
 
 class RASA:
     def __init__(self, nl_instruction: str, intent: str, resources: dict):
@@ -68,6 +68,7 @@ def bootstrapping():
 
 @app.route("/contents", methods=["POST", "GET"])
 def contents():
+    rasa_content= {}
     if request.method == "GET":
         modified = session.get('modified_rasa_response',None)
         if modified is None:
@@ -95,7 +96,7 @@ def contents():
                 print("problem rendering select_primitives template page")
 
 
-@app.route("/edit_contents", methods=["GET","POST"])
+@app.route("/edit_contents", methods=["GET", "POST"])
 def edit_contents():
     if request.method == "GET":
         response = session.get('rasa_response', None)
@@ -109,7 +110,6 @@ def edit_contents():
         print("MODIFIED FORM : ", modified_rasa_response)
         session['modified_rasa_response'] = modified_rasa_response
         return redirect(url_for('contents'))
-
 
 @app.route('/select_primitives', methods=['GET', 'POST'])
 def select_primitives():
@@ -175,6 +175,7 @@ def connectToMongo(mongo_save: dict):
             client.close()
     except:
         print('MongoDB not connected')
+
 
 ############### mongodb ##################
 # assign URLs to have a particular route
@@ -264,7 +265,7 @@ def logout():
     else:
         return render_template('register.html')
 
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
-
