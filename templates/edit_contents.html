@@ -49,6 +49,13 @@
             </tr>
             <tr>
               <td>
+                <strong class="book-title">Amount</strong>
+              </td>
+              <td class="item-qty"><input type="text" name="amount" size="10" value="{{ response['amount'] }}"></td>
+              <!-- <td class="item-qty">{{ response['amount'] }}</td> -->
+            </tr>
+            <tr>
+              <td>
                 <strong class="book-title">Unit</strong>
               </td>
               <td class="item-qty"><input type="text" name="unit" size="10" value="{{ response['unit'] }}"></td>
@@ -68,13 +75,7 @@
               <td class="item-qty"><input type="text" name="motion_verb" size="10" value="{{ response['motion_verb'] }}"></td>
               <!-- <td class="item-qty">{{ response['motion_verb'] }}</td> -->
             </tr>
-            <tr>
-              <td>
-                <strong class="book-title">Amount</strong>
-              </td>
-              <td class="item-qty"><input type="text" name="amount" size="10" value="{{ response['amount'] }}"></td>
-              <!-- <td class="item-qty">{{ response['amount'] }}</td> -->
-            </tr>
+
           </tbody>
         </table>
         <input type="submit" name="save_button" size="10" value="Save"/> </p>

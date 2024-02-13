@@ -1,5 +1,5 @@
 class Pouring:
-    def __init__(self, source=None, source_prop={}, destination="", destination_prop={}, stuff="",
+    def __init__(self, source="", source_prop={}, destination="", destination_prop={}, stuff="",
                  stuff_prop={}, amount="", units="", action_verb="", motion="", goal=""):
         self.source = source
         self.source_prop = source_prop
