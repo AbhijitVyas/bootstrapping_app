@@ -28,10 +28,10 @@ def dockerMongoDB():
         #                      password='pass',
         #                      authSource="admin")
         # Uncomment this when running locally without username,password and comment otherwise
-        # client = MongoClient(host='localhost',port=27017)
+        client = MongoClient(host='localhost',port=27017)
 
         # Uncomment this when building docker image and comment otherwise
-        client = MongoClient(host='mongoc')
+        # client = MongoClient(host='mongoc')
 
         db = client.users
         pw = "test123"

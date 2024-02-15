@@ -162,8 +162,8 @@ def load_task_definition_to_nlp():
 # This method will read RASA intent and resources and save it in MongoDB
 def connectToMongo(mongo_save: dict):
     try:
-        client = pymongo.MongoClient("mongodb://mongoc:27017/")
-        # client = pymongo.MongoClient("mongodb://localhost:27017/")
+        # client = pymongo.MongoClient("mongodb://mongoc:27017/")
+        client = pymongo.MongoClient("mongodb://localhost:27017/")
         db = client['bootstrap']
         collection = db['InputInstructions']
         if RASA_outputs:

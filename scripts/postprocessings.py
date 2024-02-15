@@ -1,5 +1,6 @@
 from scripts import cores
 from nltk.stem.porter import *
+import re
 
 stemmer = PorterStemmer()
 
@@ -19,7 +20,7 @@ fast_pouring = ['pour','gush','stream','spill','jet','well' 'out','flood','sloos
 adverbs = ['slowly','gently','cautiously','steadily','gradually','carefully','deliberately','moderately','tardily']
 shakes = ['shake','joggle','waggle','jerk','vibrate','shudder','rattle','quiver','tumble','sprinkle','agitate']
 fires = ['fire','flame','burns','flames']
-plants = ['plant','fruit','vegetable','flower','tree','sapling']
+plants = ['plant','fruit','vegetable','flower','tree','sapling','garden']
 # Pickups
 picks = ['pick','lift','hold','grab','grasp','take']
 def prop_finder(v):
@@ -121,28 +122,57 @@ def postprocess(rasa_out, compound_props):
                 # Extracting RASA outputs source,destination,stuff
                 try:
                     for dic in v:
-                        if dic['extractor'] == "DIETClassifier" and dic['entity'] == "location" and dic['role'] == "source":
-                            ins1.source = dic['value']
-                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "location" and \
-                                dic['role'] == "destination":
-                            ins1.destination = dic['value']
+                        if dic['extractor'] == "DIETClassifier" and dic['entity'] == "location":
+                            if 'role' in dic:
+                                if dic['role'] == "source":
+                                    ins1.source = dic['value']
+                                elif dic['role'] == "destination":
+                                    ins1.destination = dic['value']
+                                else:
+                                    print()
                         elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "stuff":
                             ins1.stuff = dic['value']
-                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount" and \
-                                dic['role'] == "quantity":
-                            ins1.amount = dic['value']
-                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount" and dic[
-                            'role'] == "units":
-                            ins1.units = dic['value']
+                        elif dic['extractor'] == "DIETClassifier" and dic['entity'] == "amount":
+                            if 'role' in dic:
+                                if dic['role'] == "quantity":
+                                    numeric_part = re.search(r'\d+', dic['value'])
+                                    char_part_match = re.search(r'[a-zA-Z]+', dic['value'])
+                                    if numeric_part is not None:
+                                        ins1.amount = str(numeric_part.group())
+                                    else:
+                                        ins1.amount = dic['value']
+                                    if char_part_match is not None and len(ins1.units) == 0:
+                                        ins1.units = char_part_match.group()
+
+                                elif dic['role'] == "units":
+                                    numeric_part = re.search(r'\d+', dic['value'])
+                                    char_part_match = re.search(r'[a-zA-Z]+', dic['value'])
+                                    if char_part_match is not None:
+                                        ins1.units = char_part_match.group()
+                                    else:
+                                        ins1.units = dic['value']
+                                    if numeric_part is not None and len(ins1.amount) == 0:
+                                        ins1.amount = str(numeric_part.group())
+                                else:
+                                    print()
+
                         elif dic['extractor'] == "RegexEntityExtractor" and dic['entity'] == "stuff":
                             if ins1.stuff is not None:
                                 ins1.stuff = dic['value']
                         elif dic['extractor'] == "SpacyEntityExtractor" and dic['entity'] == "CARDINAL":
-                            # if ins1.amount is not None:
-                            ins1.amount = dic['value']
+                            numeric_part = re.search(r'\d+', dic['value'])
+                            if len(ins1.amount) == 0:
+                                if numeric_part is not None:
+                                    ins1.amount = str(numeric_part.group())
+                                else:
+                                    ins1.amount = dic['value']
                         elif dic['extractor'] == "SpacyEntityExtractor" and dic['entity'] == "QUANTITY":
-                            # if ins1.amount is not None:
-                            ins1.amount = dic['value']
+                            numeric_part = re.search(r'\d+', dic['value'])
+                            if len(ins1.amount) == 0:
+                                if numeric_part is not None:
+                                    ins1.amount = str(numeric_part.group())
+                                else:
+                                    ins1.amount = dic['value']
                 except:
                     print("Problem with Parsing RASA output")
 
