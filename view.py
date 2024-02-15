@@ -87,9 +87,15 @@ def contents():
         elif request.form['submit_button'] == 'Next':
             mongo_save = session['rasa_response']
             connectToMongo(mongo_save)                                    # ------> Calling Mongo function to store data
+            print(mongo_save)
+            ### remove prim_dix
+            prim_dix = {}
+            prim_dix['source'] = mongo_save['source_object']
+            prim_dix['destination'] = mongo_save['target_object']
             try:
                 data = RASA_outputs[0]
-                primitives = provide_primitive_list(rasa_content=data.resources, intent=data.intent)
+                primitives = provide_primitive_list(rasa_content=prim_dix, intent=data.intent)
+                # primitives = provide_primitive_list(rasa_content=data.resources, intent=data.intent)
                 return render_template('select_primitives.html', len=len(primitives), primitives=primitives)
             except:
                 print("problem rendering select_primitives template page")
